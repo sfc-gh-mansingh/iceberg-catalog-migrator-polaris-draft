@@ -30,6 +30,7 @@ applyShadowJar()
 
 dependencies {
   implementation(project(":iceberg-catalog-migrator-api"))
+  implementation(project(":iceberg-catalog-migrator-polaris-management-migrator-api"))
   implementation(libs.guava)
   implementation(libs.slf4j)
   runtimeOnly(libs.logback.classic)

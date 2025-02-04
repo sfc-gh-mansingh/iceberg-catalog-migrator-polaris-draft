@@ -23,7 +23,7 @@ import picocli.CommandLine;
     name = "iceberg-catalog-migrator",
     mixinStandardHelpOptions = true,
     versionProvider = CLIVersionProvider.class,
-    subcommands = {MigrateCommand.class, RegisterCommand.class})
+    subcommands = {MigrateCommand.class, RegisterCommand.class, MigratePolarisCommand.class})
 public class CatalogMigrationCLI {
 
   public CatalogMigrationCLI() {}

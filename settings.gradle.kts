@@ -42,3 +42,5 @@ catalogMigratorProject("api-test")
 catalogMigratorProject("cli")
 
 catalogMigratorProject("bom")
+
+catalogMigratorProject("polaris-management-migrator-api")
