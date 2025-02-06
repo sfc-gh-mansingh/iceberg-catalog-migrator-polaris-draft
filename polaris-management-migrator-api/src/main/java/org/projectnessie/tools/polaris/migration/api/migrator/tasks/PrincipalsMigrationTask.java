@@ -72,7 +72,9 @@ public class PrincipalsMigrationTask extends MigrationTask<Principal> {
 
     @Override
     protected ImmutableEntityMigrationResult.Builder prepareResult(Principal principal, Exception e) {
-        return ImmutableEntityMigrationResult.builder().entityName(principal.getName());
+        return ImmutableEntityMigrationResult.builder()
+                .entityName(principal.getName())
+                .putProperties("entityVersion", principal.getEntityVersion().toString());
     }
 
 }

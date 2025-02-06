@@ -22,9 +22,18 @@ import org.projectnessie.tools.polaris.migration.api.migrator.tasks.PrincipalRol
 import org.projectnessie.tools.polaris.migration.api.migrator.tasks.PrincipalsMigrationTask;
 import org.projectnessie.tools.polaris.migration.api.result.EntityMigrationResult;
 import org.projectnessie.tools.polaris.migration.api.result.ResultWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class ManagementMigrator {
 
@@ -34,18 +43,26 @@ public class ManagementMigrator {
 
     private final ResultWriter resultWriter;
 
+    private final ExecutorService executor;
+
     public ManagementMigrator(
             PolarisManagementDefaultApi source,
             PolarisManagementDefaultApi target,
-            ResultWriter resultWriter
+            ResultWriter resultWriter,
+            int numberOfThreads
     ) {
         this.source = source;
         this.target = target;
         this.resultWriter = resultWriter;
+        this.executor = Executors.newFixedThreadPool(numberOfThreads);
     }
 
-    public List<EntityMigrationResult> migrateAll() {
-        MigrationContext migrationContext = new MigrationContext(source, target, resultWriter);
+    private MigrationContext context() {
+        return new MigrationContext(source, target, resultWriter, executor);
+    }
+
+    public List<EntityMigrationResult> migrateAll() throws Exception {
+        MigrationContext migrationContext = context();
 
         return this.migrate(migrationContext,
                 new CatalogsMigrationTask(migrationContext, true, true, true),
@@ -58,8 +75,8 @@ public class ManagementMigrator {
             boolean migrateCatalogRoles,
             boolean migrateCatalogRoleAssignments,
             boolean migrateGrants
-    ) {
-        MigrationContext migrationContext = new MigrationContext(source, target, resultWriter);
+    ) throws Exception {
+        MigrationContext migrationContext = context();
 
         return this.migrate(migrationContext,
                 new CatalogsMigrationTask(migrationContext, migrateCatalogRoles, migrateGrants, migrateCatalogRoleAssignments)
@@ -68,28 +85,30 @@ public class ManagementMigrator {
 
     public List<EntityMigrationResult> migratePrincipals(
             boolean migratePrincipalRoleAssignments
-    ) {
-        MigrationContext migrationContext = new MigrationContext(source, target, resultWriter);
+    ) throws Exception {
+        MigrationContext migrationContext = context();
 
         return this.migrate(migrationContext,
                 new PrincipalsMigrationTask(migrationContext, migratePrincipalRoleAssignments)
         );
     }
 
-    public List<EntityMigrationResult> migratePrincipalRoles() {
-        MigrationContext migrationContext = new MigrationContext(source, target, resultWriter);
+    public List<EntityMigrationResult> migratePrincipalRoles() throws Exception {
+        MigrationContext migrationContext = context();
 
         return this.migrate(migrationContext,
                 new PrincipalRolesMigrationTask(migrationContext)
         );
     }
 
-    private List<EntityMigrationResult> migrate(MigrationContext context, MigrationTask<?>... initialTasks) {
+    private List<EntityMigrationResult> migrate(MigrationContext context, MigrationTask<?>... initialTasks) throws Exception {
         for (MigrationTask<?> task : initialTasks) {
             context.taskQueue().add(task);
         }
 
-        return this.execute(context);
+        List<EntityMigrationResult> results = this.execute(context);
+        context.resultWriter().close();
+        return results;
     }
 
     private List<EntityMigrationResult> execute(MigrationContext context) {

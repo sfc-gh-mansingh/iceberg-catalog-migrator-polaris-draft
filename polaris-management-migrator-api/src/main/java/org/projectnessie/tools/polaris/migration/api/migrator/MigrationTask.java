@@ -22,8 +22,9 @@ import org.projectnessie.tools.polaris.migration.api.result.ImmutableEntityMigra
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class MigrationTask<T> {
 
@@ -40,79 +41,103 @@ public abstract class MigrationTask<T> {
 
     public abstract List<Class<? extends MigrationTask<?>>> dependsOn();
 
+    public boolean dependsOn(Class<?> taskClass) {
+        List<Class<? extends MigrationTask<?>>> dependencyClasses = this.dependsOn();
+
+        for (Class<? extends MigrationTask<?>> dependencyClass : this.dependsOn()) {
+            if (taskClass.isAssignableFrom(dependencyClass)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean dependsOn(MigrationTask<?> task) {
+        return this.dependsOn(task.getClass());
+    }
+
     protected abstract List<T> getEntities();
 
     protected abstract void createEntity(T entity) throws Exception;
 
+    protected ImmutableEntityMigrationResult.Builder prepareResultOnRetrievalFailure(Exception e) {
+        return ImmutableEntityMigrationResult.builder();
+    }
+
     protected abstract ImmutableEntityMigrationResult.Builder prepareResult(T entity, Exception e);
 
     public List<EntityMigrationResult> migrate() {
-        LOG.info("Retrieving {}s from source.", entityType.name());
+        LOG.info("Retrieving {}S from source.", entityType.name());
 
         List<T> entitiesOnSource;
 
         try {
             entitiesOnSource = getEntities();
         } catch (Exception e) {
-            EntityMigrationResult result = ImmutableEntityMigrationResult.builder()
+            EntityMigrationResult result = prepareResultOnRetrievalFailure(e)
                     .entityType(entityType)
                     .entityName(this.getClass().getName())
                     .status(EntityMigrationResult.MigrationStatus.FAILED_RETRIEVAL)
                     .reason(e.toString())
                     .build();
 
-            LOG.debug("[{}] Migration of {} {}", result.status().name(), entityType.name(), result.entityName());
+            LOG.error("[{}] Retrieving {}S", result.status().name(), entityType.name());
 
             context.resultWriter().writeResult(result);
 
             return List.of(result);
         }
 
-        LOG.info("Identified {} {}s from source.", entitiesOnSource.size(), entityType.name());
+        LOG.info("Identified {} {}S from source.", entitiesOnSource.size(), entityType.name());
 
         if (!entitiesOnSource.isEmpty()) {
             LOG.info("Starting {} migration.", entityType.name());
         }
 
-        List<EntityMigrationResult> results = new ArrayList<>();
+        AtomicInteger completedMigrations = new AtomicInteger();
 
-        int completedMigrations = 0;
+        List<CompletableFuture<EntityMigrationResult>> futures = entitiesOnSource.stream()
+                .map(entity -> CompletableFuture.supplyAsync(() -> {
+                    EntityMigrationResult result;
 
-        for (T entity : entitiesOnSource) {
-            completedMigrations++;
-            ImmutableEntityMigrationResult.Builder migrationResultBuilder;
+                    try {
+                        createEntity(entity);
+                        result = prepareResult(entity, null)
+                                .entityType(entityType)
+                                .status(EntityMigrationResult.MigrationStatus.SUCCESS)
+                                .reason("")
+                                .build();
+                        LOG.info("[{}] Migration of {} {} - {}/{}",
+                                result.status().name(),
+                                entityType.name(),
+                                result.entityName(),
+                                completedMigrations.incrementAndGet(),
+                                entitiesOnSource.size()
+                        );
+                    } catch (Exception e) {
+                        result = prepareResult(entity, e)
+                                .entityType(entityType)
+                                .status(EntityMigrationResult.MigrationStatus.FAILED_MIGRATION)
+                                .reason(e.toString())
+                                .build();
+                        LOG.error("[{}] Migration of {} {} - {}/{}",
+                                result.status().name(),
+                                entityType.name(),
+                                result.entityName(),
+                                completedMigrations.incrementAndGet(),
+                                entitiesOnSource.size()
+                        );
+                    }
 
-            try {
-                createEntity(entity);
+                    context.resultWriter().writeResult(result);
+                    return result;
+                }, context.executor())).toList();
 
-                migrationResultBuilder = prepareResult(entity, null)
-                        .entityType(entityType)
-                        .status(EntityMigrationResult.MigrationStatus.SUCCESS)
-                        .reason("");
-            } catch (Exception e) {
-                migrationResultBuilder = prepareResult(entity, e)
-                        .entityType(entityType)
-                        .status(EntityMigrationResult.MigrationStatus.FAILED_MIGRATION)
-                        .reason(e.toString());
-            }
 
-            EntityMigrationResult result = migrationResultBuilder.build();
-
-            LOG.info(
-                    "[{}] Migration of {} {} - {}/{}",
-                    result.status().name(),
-                    entityType.name(),
-                    result.entityName(),
-                    completedMigrations,
-                    entitiesOnSource.size()
-            );
-
-            context.resultWriter().writeResult(result);
-
-            results.add(migrationResultBuilder.build());
-        }
-
-        return results;
+        return futures.stream()
+                .map(CompletableFuture::join)
+                .toList();
     }
 
 }

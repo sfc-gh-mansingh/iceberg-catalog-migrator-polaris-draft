@@ -67,10 +67,17 @@ public class CatalogRolesMigrationTask extends MigrationTask<CatalogRole> {
     }
 
     @Override
+    protected ImmutableEntityMigrationResult.Builder prepareResultOnRetrievalFailure(Exception e) {
+        return ImmutableEntityMigrationResult.builder()
+                .putProperties("catalogName", catalogName);
+    }
+
+    @Override
     protected ImmutableEntityMigrationResult.Builder prepareResult(CatalogRole catalogRole, Exception e) {
         return ImmutableEntityMigrationResult.builder()
                 .entityName(catalogRole.getName())
-                .putProperties("catalogName", catalogName);
+                .putProperties("catalogName", catalogName)
+                .putProperties("entityVersion", catalogRole.getEntityVersion().toString());
     }
 
     @Override

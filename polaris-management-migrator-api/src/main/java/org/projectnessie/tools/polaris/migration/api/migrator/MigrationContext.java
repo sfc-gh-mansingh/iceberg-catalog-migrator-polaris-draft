@@ -21,6 +21,7 @@ import org.projectnessie.tools.polaris.migration.api.result.ResultWriter;
 
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.concurrent.ExecutorService;
 
 public class MigrationContext {
 
@@ -32,14 +33,18 @@ public class MigrationContext {
 
     private final ResultWriter resultWriter;
 
+    private final ExecutorService executorService;
+
     public MigrationContext(
             PolarisManagementDefaultApi source,
             PolarisManagementDefaultApi target,
-            ResultWriter resultWriter
+            ResultWriter resultWriter,
+            ExecutorService executorService
     ) {
         this.source = source;
         this.target = target;
         this.resultWriter = resultWriter;
+        this.executorService = executorService;
         this.taskQueue = new PriorityQueue<>((t1, t2) -> {
             // If t2 depends on t1, t1 should be prioritized (i.e., t1 < t2)
             for (Class<? extends MigrationTask<?>> taskClass : t2.dependsOn()) {
@@ -74,6 +79,10 @@ public class MigrationContext {
 
     public ResultWriter resultWriter() {
         return this.resultWriter;
+    }
+
+    public ExecutorService executor() {
+        return this.executorService;
     }
 
 }

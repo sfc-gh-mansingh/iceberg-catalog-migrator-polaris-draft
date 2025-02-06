@@ -53,6 +53,13 @@ public class GrantsMigrationTask extends MigrationTask<GrantResource> {
     }
 
     @Override
+    protected ImmutableEntityMigrationResult.Builder prepareResultOnRetrievalFailure(Exception e) {
+        return ImmutableEntityMigrationResult.builder()
+                .putProperties("catalogName", catalogName)
+                .putProperties("catalogRoleName", catalogRoleName);
+    }
+
+    @Override
     protected ImmutableEntityMigrationResult.Builder prepareResult(GrantResource grant, Exception e) {
         return ImmutableEntityMigrationResult.builder()
                 .entityName(grant.getType().getValue())

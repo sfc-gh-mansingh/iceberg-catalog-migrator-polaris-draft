@@ -50,11 +50,18 @@ public class PrincipalRolesAssignmentMigrationTask extends MigrationTask<Princip
     }
 
     @Override
+    protected ImmutableEntityMigrationResult.Builder prepareResultOnRetrievalFailure(Exception e) {
+        return ImmutableEntityMigrationResult.builder()
+                .putProperties("principalName", principalName);
+    }
+
+    @Override
     protected ImmutableEntityMigrationResult.Builder prepareResult(PrincipalRole principalRole, Exception e) {
         return ImmutableEntityMigrationResult.builder()
-                .entityName(principalRole.getName())
+                .entityName("")
                 .putProperties("principalName", principalName)
-                .putProperties("principalRoleName", principalRole.getName());
+                .putProperties("principalRoleName", principalRole.getName())
+                .putProperties("entityVersion", principalRole.getEntityVersion().toString());
     }
 
 }

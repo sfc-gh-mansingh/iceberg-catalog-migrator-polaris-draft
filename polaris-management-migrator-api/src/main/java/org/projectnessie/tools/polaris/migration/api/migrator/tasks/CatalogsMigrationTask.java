@@ -68,7 +68,9 @@ public class CatalogsMigrationTask extends MigrationTask<Catalog> {
 
     @Override
     protected ImmutableEntityMigrationResult.Builder prepareResult(Catalog catalog, Exception e) {
-        return ImmutableEntityMigrationResult.builder().entityName(catalog.getName());
+        return ImmutableEntityMigrationResult.builder()
+                .entityName(catalog.getName())
+                .putProperties("entityVersion", catalog.getEntityVersion().toString());
     }
 
     @Override

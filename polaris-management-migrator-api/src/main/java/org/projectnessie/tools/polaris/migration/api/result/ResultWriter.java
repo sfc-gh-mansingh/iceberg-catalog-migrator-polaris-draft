@@ -26,6 +26,8 @@ public class ResultWriter implements AutoCloseable {
 
     private final CSVPrinter printer;
 
+    private final Object fileLock = new Object();
+
     public ResultWriter(File file) throws IOException {
         CSVFormat format = CSVFormat.DEFAULT
                 .builder()
@@ -35,10 +37,12 @@ public class ResultWriter implements AutoCloseable {
     }
 
     public void writeResult(EntityMigrationResult result) {
-        try {
-            printer.printRecord(result.entityName(), result.entityType(), result.status(), result.reason(), result.properties());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        synchronized (fileLock) {
+            try {
+                printer.printRecord(result.entityName(), result.entityType(), result.status(), result.reason(), result.properties());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
