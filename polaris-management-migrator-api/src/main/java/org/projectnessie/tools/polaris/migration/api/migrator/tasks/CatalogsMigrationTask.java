@@ -77,7 +77,10 @@ public class CatalogsMigrationTask extends MigrationTask<Catalog> {
 
     @Override
     protected Map<String, String> properties(Catalog catalog) {
-        return Map.of("catalogName", catalog.getName());
+        return Map.of(
+                "catalogName", catalog.getName(),
+                "sourceEntityVersion", catalog.getEntityVersion().toString()
+        );
     }
 
     @Override

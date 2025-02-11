@@ -58,7 +58,10 @@ public class PrincipalRolesMigrationTask extends MigrationTask<PrincipalRole> {
 
     @Override
     protected Map<String, String> properties(PrincipalRole principalRole) {
-        return Map.of("principalRoleName", principalRole.getName());
+        return Map.of(
+                "principalRoleName", principalRole.getName(),
+                "sourceEntityVersion", principalRole.getEntityVersion().toString()
+        );
     }
 
 }

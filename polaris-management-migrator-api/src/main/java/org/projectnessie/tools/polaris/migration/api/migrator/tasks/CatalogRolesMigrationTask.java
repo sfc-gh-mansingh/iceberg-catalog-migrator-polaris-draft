@@ -84,7 +84,8 @@ public class CatalogRolesMigrationTask extends MigrationTask<CatalogRole> {
     protected Map<String, String> properties(CatalogRole catalogRole) {
         return Map.of(
                 "catalogRoleName", catalogRole.getName(),
-                "catalogName", catalogName
+                "catalogName", catalogName,
+                "sourceEntityVersion", catalogRole.getEntityVersion().toString()
         );
     }
 

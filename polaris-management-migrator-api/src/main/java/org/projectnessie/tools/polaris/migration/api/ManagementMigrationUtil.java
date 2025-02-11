@@ -26,25 +26,25 @@ import java.util.Map;
 
 public final class ManagementMigrationUtil {
 
-    private static final String URI = "uri";
+    protected static final String URI = "uri";
 
-    private static final String CLIENT_ID = "client_id";
+    protected static final String CLIENT_ID = "client_id";
 
-    private static final String CLIENT_SECRET = "client_secret";
+    protected static final String CLIENT_SECRET = "client_secret";
 
-    private static final String SCOPE = "scope";
+    protected static final String SCOPE = "scope";
 
-    private static final String OAUTH2_SERVER_URI = "oauth2-server-uri";
+    protected static final String OAUTH2_SERVER_URI = "oauth2-server-uri";
 
-    private static final String ACCESS_TOKEN = "access-token";
+    protected static final String ACCESS_TOKEN = "access-token";
 
-    private static void assertPresent(String key, Map<String, String> props, String errorMessage) {
+    protected static void assertPresent(String key, Map<String, String> props, String errorMessage) {
         if (!props.containsKey(key)) {
             throw new IllegalArgumentException(errorMessage);
         }
     }
 
-    private static void validatePolarisInstanceProperties(Map<String, String> props) {
+    protected static void validatePolarisInstanceProperties(Map<String, String> props) {
         assertPresent("uri", props, "Property uri is required but was not provided");
 
         String oauthErrorMessage = String.format(

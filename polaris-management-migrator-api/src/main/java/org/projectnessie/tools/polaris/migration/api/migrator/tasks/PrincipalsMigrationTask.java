@@ -76,6 +76,7 @@ public class PrincipalsMigrationTask extends MigrationTask<Principal> {
     protected Map<String, String> properties(Principal principal) {
         Map<String, String> properties = new HashMap<>();
         properties.put("principalName", principal.getName());
+        properties.put("sourceEntityVersion", principal.getEntityVersion().toString());
 
         if (targetPrincipalBySourcePrincipal.containsKey(principal)) {
             PrincipalWithCredentials targetPrincipal = targetPrincipalBySourcePrincipal.get(principal);

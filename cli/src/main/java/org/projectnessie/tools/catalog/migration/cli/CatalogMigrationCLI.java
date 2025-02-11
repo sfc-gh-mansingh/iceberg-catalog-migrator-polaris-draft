@@ -38,9 +38,15 @@ public class CatalogMigrationCLI {
                   if (enableStacktrace(args)) {
                     cmd.getErr().println(cmd.getColorScheme().richStackTraceString(ex));
                   } else {
+                      String logFileName = "catalog_migration.log";
+
+                      if (cmd.getCommand() instanceof CopyPolarisCommand) {
+                          logFileName = "management_copy.log";
+                      }
+
                     consoleLog.error(
-                        "Error during CLI execution: {}. Please check `catalog_migration.log` file for more info.",
-                        ex.getMessage());
+                        "Error during CLI execution: {}. Please check `{}` file for more info.",
+                        ex.getMessage(), logFileName);
                   }
                   return 1;
                 });

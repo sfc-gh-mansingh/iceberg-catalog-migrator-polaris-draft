@@ -194,9 +194,9 @@ public class CopyPolarisCommand implements Callable<Integer> {
         MigrationLog log = runMigrator.apply(migrator);
         stopWatch.stop();
 
-        LOG.info("Migration report:\n{}", log.generateReport());
+        LOG.info("Report:\n{}", log.generateReport());
 
-        LOG.info("Migration took {}", stopWatch);
+        LOG.info("Execution took {}", stopWatch);
     }
 
 }

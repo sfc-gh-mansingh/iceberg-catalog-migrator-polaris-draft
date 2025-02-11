@@ -17,7 +17,11 @@
 package org.projectnessie.tools.polaris.migration.api.migrator.tasks;
 
 import org.apache.polaris.core.admin.model.AddGrantRequest;
+import org.apache.polaris.core.admin.model.CatalogGrant;
 import org.apache.polaris.core.admin.model.GrantResource;
+import org.apache.polaris.core.admin.model.NamespaceGrant;
+import org.apache.polaris.core.admin.model.TableGrant;
+import org.apache.polaris.core.admin.model.ViewGrant;
 import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationContext;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationTask;
@@ -54,8 +58,22 @@ public class GrantsMigrationTask extends MigrationTask<GrantResource> {
 
     @Override
     protected String getDescription(GrantResource grant) {
-        return String.format("Grant (%s) for catalog role (%s) under catalog (%s)",
-                grant.getType(), catalogRoleName, catalogName);
+        return String.format("Grant (%s) of type (%s) for catalog role (%s) under catalog (%s)",
+                getGrantPrivilege(grant), grant.getType(), catalogRoleName, catalogName);
+    }
+
+    private String getGrantPrivilege(GrantResource grant) {
+        String privilege  = "";
+
+        switch (grant) {
+            case CatalogGrant c -> privilege = c.getPrivilege().getValue();
+            case NamespaceGrant n -> privilege = n.getPrivilege().getValue();
+            case TableGrant t -> privilege = t.getPrivilege().getValue();
+            case ViewGrant v -> privilege = v.getPrivilege().getValue();
+            default -> {}
+        }
+
+        return privilege;
     }
 
     @Override
@@ -70,6 +88,7 @@ public class GrantsMigrationTask extends MigrationTask<GrantResource> {
     protected Map<String, String> properties(GrantResource grant) {
         return Map.of(
                 "type", grant.getType().getValue(),
+                "privilege", getGrantPrivilege(grant),
                 "catalogName", catalogName,
                 "catalogRoleName", catalogRoleName
         );

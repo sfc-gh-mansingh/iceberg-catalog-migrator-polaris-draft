@@ -35,9 +35,23 @@
     </encoder>
   </appender>
 
+  <appender name="management-file" class="ch.qos.logback.core.FileAppender">
+    <file>${catalog.migration.log.dir}/management_copy.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%date{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
   <logger name="console-log" level="INFO" additivity="false">
     <appender-ref ref="console"/>
   </logger>
+
+  <logger name="org.projectnessie.tools.polaris.migration.api" level="INFO" additivity="false">
+    <appender-ref ref="console"/>
+    <appender-ref ref="management-file"/>
+  </logger>
+
   <root>
     <level value="INFO"/>
     <appender-ref ref="file"/>

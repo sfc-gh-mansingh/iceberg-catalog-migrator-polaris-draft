@@ -39,7 +39,7 @@ public abstract class MigrationTask<T> {
 
     protected MigrationContext context;
 
-    protected Logger LOG = LoggerFactory.getLogger("console-log");
+    protected Logger LOG = LoggerFactory.getLogger(MigrationTask.class);
 
     protected MigrationTask(ManagementEntityType entityType, MigrationContext context) {
         this.entityType = entityType;
@@ -133,7 +133,7 @@ public abstract class MigrationTask<T> {
                                         .build()
                         );
 
-                        LOG.info("[{}] Successfully migrated {} \"{}\" - {}/{}",
+                        LOG.info("[{}] [{}] Successfully copied {} - {}/{}",
                                 TaskStatus.SUCCESS,
                                 entityType.name().toLowerCase(),
                                 getDescription(entity),
@@ -143,7 +143,7 @@ public abstract class MigrationTask<T> {
 
                     } catch (Exception e) {
 
-                        TaskStatus status = TaskStatus.MIGRATION_FAILED;
+                        TaskStatus status = TaskStatus.COPY_FAILED;
 
                         if (e instanceof ApiException apiException && apiException.getCode() == HttpStatus.SC_CONFLICT) {
                             // Failures should be distinct from conflicts as they are far more common in the synchronization
@@ -159,7 +159,7 @@ public abstract class MigrationTask<T> {
                                         .build()
                         );
 
-                        LOG.error("[{}] Failed to migrate {} \"{}\" - {}/{}",
+                        LOG.error("[{}] [{}] Failed to copy {} - {}/{}",
                                 status,
                                 entityType.name().toLowerCase(),
                                 getDescription(entity),

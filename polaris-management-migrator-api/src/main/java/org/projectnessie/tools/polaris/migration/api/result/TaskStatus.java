@@ -18,7 +18,7 @@ package org.projectnessie.tools.polaris.migration.api.result;
 
 public enum TaskStatus {
     SUCCESS,
-    MIGRATION_FAILED,
+    COPY_FAILED,
     LIST_FAILED,
     CONFLICT,
 }
