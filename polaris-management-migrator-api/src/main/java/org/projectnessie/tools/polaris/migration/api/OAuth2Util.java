@@ -50,9 +50,12 @@ public class OAuth2Util {
                 .post(body)
                 .build();
 
-        Response response = httpClient.newCall(tokenRequest).execute();
-        Map<String, Object> map = objectMapper.readValue(response.body().string(), Map.class);
-        return map.get("access_token").toString();
+        try (Response response = httpClient.newCall(tokenRequest).execute()) {
+            Map<String, Object> map = objectMapper.readValue(response.body().string(), Map.class);
+            return map.get("access_token").toString();
+        } catch (Exception e) {
+            throw new IOException("Could not fetch access token.", e);
+        }
     }
 
 }

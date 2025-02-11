@@ -18,14 +18,15 @@ package org.projectnessie.tools.polaris.migration.api.migrator.tasks;
 
 import org.apache.polaris.core.admin.model.CreatePrincipalRequest;
 import org.apache.polaris.core.admin.model.Principal;
+import org.apache.polaris.core.admin.model.PrincipalWithCredentials;
 import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationContext;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationTask;
-import org.projectnessie.tools.polaris.migration.api.result.EntityMigrationResult;
-import org.projectnessie.tools.polaris.migration.api.result.ImmutableEntityMigrationResult;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PrincipalsMigrationTask extends MigrationTask<Principal> {
 
@@ -33,10 +34,13 @@ public class PrincipalsMigrationTask extends MigrationTask<Principal> {
 
     private final List<Principal> candidatesForRoleAssignmentMigration;
 
+    private final Map<Principal, PrincipalWithCredentials> targetPrincipalBySourcePrincipal;
+
     public PrincipalsMigrationTask(MigrationContext context, boolean migratePrincipalRoleAssignments) {
         super(ManagementEntityType.PRINCIPAL, context);
         this.migratePrincipalRoleAssignments = migratePrincipalRoleAssignments;
         this.candidatesForRoleAssignmentMigration = new ArrayList<>();
+        this.targetPrincipalBySourcePrincipal = new HashMap<>();
     }
 
     @Override
@@ -45,19 +49,47 @@ public class PrincipalsMigrationTask extends MigrationTask<Principal> {
     }
 
     @Override
-    protected List<Principal> getEntities() {
+    protected List<Principal> listEntities() {
         return context.source().listPrincipals().getPrincipals();
     }
 
     @Override
     protected void createEntity(Principal principal) throws Exception {
         this.candidatesForRoleAssignmentMigration.add(principal);
-        context.target().createPrincipal(new CreatePrincipalRequest().principal(principal));
+        PrincipalWithCredentials targetPrincipal = context.target()
+                .createPrincipal(new CreatePrincipalRequest().principal(principal));
+
+        targetPrincipalBySourcePrincipal.put(principal, targetPrincipal);
     }
 
     @Override
-    public List<EntityMigrationResult> migrate() {
-        List<EntityMigrationResult> results = super.migrate();
+    protected String getDescription(Principal principal) {
+        return principal.getName();
+    }
+
+    @Override
+    protected Map<String, String> properties() {
+        return Map.of();
+    }
+
+    @Override
+    protected Map<String, String> properties(Principal principal) {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("principalName", principal.getName());
+
+        if (targetPrincipalBySourcePrincipal.containsKey(principal)) {
+            PrincipalWithCredentials targetPrincipal = targetPrincipalBySourcePrincipal.get(principal);
+            properties.put("sourceClientId", principal.getClientId() == null ? "" : principal.getClientId());
+            properties.put("targetClientId", targetPrincipal.getCredentials().getClientId() == null ? "" : targetPrincipal.getCredentials().getClientId());
+            properties.put("targetClientSecret", targetPrincipal.getCredentials().getClientSecret() == null ? "" : targetPrincipal.getCredentials().getClientSecret());
+        }
+
+        return properties;
+    }
+
+    @Override
+    public void migrate() {
+        super.migrate();
 
         if (migratePrincipalRoleAssignments) {
             for (Principal principal : candidatesForRoleAssignmentMigration) {
@@ -66,15 +98,6 @@ public class PrincipalsMigrationTask extends MigrationTask<Principal> {
                 context.taskQueue().add(principalRolesAssignmentMigrationTask);
             }
         }
-
-        return results;
-    }
-
-    @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResult(Principal principal, Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .entityName(principal.getName())
-                .putProperties("entityVersion", principal.getEntityVersion().toString());
     }
 
 }

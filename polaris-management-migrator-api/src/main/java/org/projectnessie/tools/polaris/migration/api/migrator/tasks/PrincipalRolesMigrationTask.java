@@ -21,9 +21,9 @@ import org.apache.polaris.core.admin.model.PrincipalRole;
 import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationContext;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationTask;
-import org.projectnessie.tools.polaris.migration.api.result.ImmutableEntityMigrationResult;
 
 import java.util.List;
+import java.util.Map;
 
 public class PrincipalRolesMigrationTask extends MigrationTask<PrincipalRole> {
 
@@ -37,7 +37,7 @@ public class PrincipalRolesMigrationTask extends MigrationTask<PrincipalRole> {
     }
 
     @Override
-    protected List<PrincipalRole> getEntities() {
+    protected List<PrincipalRole> listEntities() {
         return context.source().listPrincipalRoles().getRoles();
     }
 
@@ -47,10 +47,18 @@ public class PrincipalRolesMigrationTask extends MigrationTask<PrincipalRole> {
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResult(PrincipalRole principalRole, Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .entityName(principalRole.getName())
-                .putProperties("entityVersion", principalRole.getEntityVersion().toString());
+    protected String getDescription(PrincipalRole principalRole) {
+        return principalRole.getName();
+    }
+
+    @Override
+    protected Map<String, String> properties() {
+        return Map.of();
+    }
+
+    @Override
+    protected Map<String, String> properties(PrincipalRole principalRole) {
+        return Map.of("principalRoleName", principalRole.getName());
     }
 
 }

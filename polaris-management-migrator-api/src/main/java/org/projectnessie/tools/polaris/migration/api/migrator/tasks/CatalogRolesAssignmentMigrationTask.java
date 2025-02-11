@@ -22,9 +22,9 @@ import org.apache.polaris.core.admin.model.PrincipalRole;
 import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationContext;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationTask;
-import org.projectnessie.tools.polaris.migration.api.result.ImmutableEntityMigrationResult;
 
 import java.util.List;
+import java.util.Map;
 
 public class CatalogRolesAssignmentMigrationTask extends MigrationTask<PrincipalRole> {
 
@@ -40,11 +40,13 @@ public class CatalogRolesAssignmentMigrationTask extends MigrationTask<Principal
 
     @Override
     public List<Class<? extends MigrationTask<?>>> dependsOn() {
-        return List.of(CatalogsMigrationTask.class, CatalogRolesMigrationTask.class);
+        // Catalog role assignments to principal roles require all catalogs, catalog roles, and principal role
+        // migrations to take place first
+        return List.of(CatalogsMigrationTask.class, CatalogRolesMigrationTask.class, PrincipalRolesMigrationTask.class);
     }
 
     @Override
-    protected List<PrincipalRole> getEntities() {
+    protected List<PrincipalRole> listEntities() {
         return context.source().listAssigneePrincipalRolesForCatalogRole(catalogName, catalogRoleName).getRoles();
     }
 
@@ -59,22 +61,26 @@ public class CatalogRolesAssignmentMigrationTask extends MigrationTask<Principal
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResultOnRetrievalFailure(Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .putProperties("catalogName", catalogName)
-                .putProperties("catalogRoleName", catalogRoleName);
+    protected String getDescription(PrincipalRole principalRole) {
+        return String.format("Assignment of catalog role (%s) under catalog (%s) to principal role (%s)",
+                catalogRoleName, catalogName, principalRole.getName());
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResult(
-            PrincipalRole principalRole,
-            Exception e
-    ) {
-        return ImmutableEntityMigrationResult.builder()
-                .entityName("")
-                .putProperties("catalogName", catalogName)
-                .putProperties("catalogRoleName", catalogRoleName)
-                .putProperties("entityVersion", principalRole.getEntityVersion().toString());
+    protected Map<String, String> properties() {
+        return Map.of(
+                "catalogName", catalogName,
+                "catalogRoleName", catalogRoleName
+        );
+    }
+
+    @Override
+    protected Map<String, String> properties(PrincipalRole principalRole) {
+        return Map.of(
+                "catalogName", catalogName,
+                "catalogRoleName", catalogRoleName,
+                "principalRoleName", principalRole.getName()
+        );
     }
 
 }

@@ -21,11 +21,10 @@ import org.apache.polaris.core.admin.model.CreateCatalogRequest;
 import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationContext;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationTask;
-import org.projectnessie.tools.polaris.migration.api.result.EntityMigrationResult;
-import org.projectnessie.tools.polaris.migration.api.result.ImmutableEntityMigrationResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CatalogsMigrationTask extends MigrationTask<Catalog> {
 
@@ -56,7 +55,7 @@ public class CatalogsMigrationTask extends MigrationTask<Catalog> {
     }
 
     @Override
-    protected List<Catalog> getEntities() {
+    protected List<Catalog> listEntities() {
         return context.source().listCatalogs().getCatalogs();
     }
 
@@ -67,15 +66,23 @@ public class CatalogsMigrationTask extends MigrationTask<Catalog> {
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResult(Catalog catalog, Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .entityName(catalog.getName())
-                .putProperties("entityVersion", catalog.getEntityVersion().toString());
+    protected String getDescription(Catalog catalog) {
+        return catalog.getName();
     }
 
     @Override
-    public List<EntityMigrationResult> migrate() {
-        List<EntityMigrationResult> results = super.migrate();
+    protected Map<String, String> properties() {
+        return Map.of();
+    }
+
+    @Override
+    protected Map<String, String> properties(Catalog catalog) {
+        return Map.of("catalogName", catalog.getName());
+    }
+
+    @Override
+    public void migrate() {
+        super.migrate();
 
         if (migrateCatalogRoles) {
             for (Catalog catalog : candidatesForCatalogRoleMigration) {
@@ -83,8 +90,6 @@ public class CatalogsMigrationTask extends MigrationTask<Catalog> {
                 context.taskQueue().add(catalogRoleMigrationTask);
             }
         }
-
-        return results;
     }
 
 }

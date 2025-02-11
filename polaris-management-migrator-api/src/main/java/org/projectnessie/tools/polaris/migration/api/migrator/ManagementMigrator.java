@@ -20,49 +20,47 @@ import com.snowflake.polaris.management.client.PolarisManagementDefaultApi;
 import org.projectnessie.tools.polaris.migration.api.migrator.tasks.CatalogsMigrationTask;
 import org.projectnessie.tools.polaris.migration.api.migrator.tasks.PrincipalRolesMigrationTask;
 import org.projectnessie.tools.polaris.migration.api.migrator.tasks.PrincipalsMigrationTask;
-import org.projectnessie.tools.polaris.migration.api.result.EntityMigrationResult;
-import org.projectnessie.tools.polaris.migration.api.result.ResultWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.projectnessie.tools.polaris.migration.api.result.MigrationLog;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
+/**
+ * Migrator service class to run configurations of different Polaris entity migrations.
+ */
 public class ManagementMigrator {
 
     private final PolarisManagementDefaultApi source;
 
     private final PolarisManagementDefaultApi target;
 
-    private final ResultWriter resultWriter;
+    private final MigrationLog migrationLog;
 
     private final ExecutorService executor;
 
     public ManagementMigrator(
             PolarisManagementDefaultApi source,
             PolarisManagementDefaultApi target,
-            ResultWriter resultWriter,
+            MigrationLog migrationLog,
             int numberOfThreads
     ) {
         this.source = source;
         this.target = target;
-        this.resultWriter = resultWriter;
+        this.migrationLog = migrationLog;
         this.executor = Executors.newFixedThreadPool(numberOfThreads);
     }
 
-    private MigrationContext context() {
-        return new MigrationContext(source, target, resultWriter, executor);
+    private MigrationContext createContext() {
+        return new MigrationContext(source, target, migrationLog, executor);
     }
 
-    public List<EntityMigrationResult> migrateAll() throws Exception {
-        MigrationContext migrationContext = context();
+    /**
+     * Migrate all Polaris entities.
+     * @return the log of the migration events that took place
+     * @throws Exception
+     */
+    public MigrationLog migrateAll() throws Exception {
+        MigrationContext migrationContext = createContext();
 
         return this.migrate(migrationContext,
                 new CatalogsMigrationTask(migrationContext, true, true, true),
@@ -71,55 +69,70 @@ public class ManagementMigrator {
         );
     }
 
-    public List<EntityMigrationResult> migrateCatalogs(
+    /**
+     * Migrate all Polaris catalog entities and possibly their hierarchical subentities
+     * @param migrateCatalogRoles true if the migration of the catalog roles is desired
+     * @param migrateCatalogRoleAssignments true if the migration of catalog role assignments to principal roles is desired
+     * @param migrateGrants true if the migration of grants under catalog roles is desired
+     * @return the log of migration events that took place
+     * @throws Exception
+     */
+    public MigrationLog migrateCatalogs(
             boolean migrateCatalogRoles,
             boolean migrateCatalogRoleAssignments,
             boolean migrateGrants
     ) throws Exception {
-        MigrationContext migrationContext = context();
+        MigrationContext migrationContext = createContext();
 
         return this.migrate(migrationContext,
                 new CatalogsMigrationTask(migrationContext, migrateCatalogRoles, migrateGrants, migrateCatalogRoleAssignments)
         );
     }
 
-    public List<EntityMigrationResult> migratePrincipals(
+    /**
+     * Migrate all Polaris principal entities
+     * @param migratePrincipalRoleAssignments true if migration of assignment of principals to principal roles is desired
+     * @return the log of migration events that took place
+     * @throws Exception
+     */
+    public MigrationLog migratePrincipals(
             boolean migratePrincipalRoleAssignments
     ) throws Exception {
-        MigrationContext migrationContext = context();
+        MigrationContext migrationContext = createContext();
 
         return this.migrate(migrationContext,
                 new PrincipalsMigrationTask(migrationContext, migratePrincipalRoleAssignments)
         );
     }
 
-    public List<EntityMigrationResult> migratePrincipalRoles() throws Exception {
-        MigrationContext migrationContext = context();
+    /**
+     * Migrate all Polaris principal role entities
+     * @return the log of migration events that took place
+     * @throws Exception
+     */
+    public MigrationLog migratePrincipalRoles() throws Exception {
+        MigrationContext migrationContext = createContext();
 
         return this.migrate(migrationContext,
                 new PrincipalRolesMigrationTask(migrationContext)
         );
     }
 
-    private List<EntityMigrationResult> migrate(MigrationContext context, MigrationTask<?>... initialTasks) throws Exception {
+    private MigrationLog migrate(MigrationContext context, MigrationTask<?>... initialTasks) throws Exception {
         for (MigrationTask<?> task : initialTasks) {
             context.taskQueue().add(task);
         }
 
-        List<EntityMigrationResult> results = this.execute(context);
-        context.resultWriter().close();
-        return results;
+        this.execute(context);
+        context.migrationLog().close();
+
+        return context.migrationLog();
     }
 
-    private List<EntityMigrationResult> execute(MigrationContext context) {
-        List<EntityMigrationResult> results = new ArrayList<>();
-
+    private void execute(MigrationContext context) {
         while (!context.taskQueue().isEmpty()) {
-            List<EntityMigrationResult> taskResults = context.taskQueue().poll().migrate();
-            results.addAll(taskResults);
+            context.taskQueue().poll().migrate();
         }
-
-        return results;
     }
 
 }

@@ -21,33 +21,23 @@ import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
 
 import java.util.Map;
 
+/**
+ * Value class containing the details of an individual migration event.
+ */
 @Value.Immutable
-public interface EntityMigrationResult {
+public interface EntityMigrationLog {
 
-    enum MigrationStatus {
-        SUCCESS,
-        FAILED_RETRIEVAL,
-        FAILED_MIGRATION
-    }
+    String entityDescription();
 
-    String entityName();
-
-    MigrationStatus status();
+    TaskStatus status();
 
     ManagementEntityType entityType();
 
-    String reason();
+    @Value.Default
+    default String reason() {
+        return "";
+    }
 
     Map<String, String> properties();
-
-    @Value.Default
-    default void setProperty(String name, String value) {
-        properties().put(name, value);
-    }
-
-    @Value.Default
-    default String getProperty(String name) {
-        return properties().get(name);
-    }
 
 }

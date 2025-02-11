@@ -21,9 +21,9 @@ import org.apache.polaris.core.admin.model.PrincipalRole;
 import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationContext;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationTask;
-import org.projectnessie.tools.polaris.migration.api.result.ImmutableEntityMigrationResult;
 
 import java.util.List;
+import java.util.Map;
 
 public class PrincipalRolesAssignmentMigrationTask extends MigrationTask<PrincipalRole> {
 
@@ -40,7 +40,7 @@ public class PrincipalRolesAssignmentMigrationTask extends MigrationTask<Princip
     }
 
     @Override
-    protected List<PrincipalRole> getEntities() {
+    protected List<PrincipalRole> listEntities() {
         return context.source().listPrincipalRolesAssigned(principalName).getRoles();
     }
 
@@ -50,18 +50,22 @@ public class PrincipalRolesAssignmentMigrationTask extends MigrationTask<Princip
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResultOnRetrievalFailure(Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .putProperties("principalName", principalName);
+    protected String getDescription(PrincipalRole principalRole) {
+        return String.format("Assignment of principal role (%s) to principal (%s)",
+                principalRole.getName(), principalName);
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResult(PrincipalRole principalRole, Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .entityName("")
-                .putProperties("principalName", principalName)
-                .putProperties("principalRoleName", principalRole.getName())
-                .putProperties("entityVersion", principalRole.getEntityVersion().toString());
+    protected Map<String, String> properties() {
+        return Map.of("principalName", principalName);
+    }
+
+    @Override
+    protected Map<String, String> properties(PrincipalRole principalRole) {
+        return Map.of(
+                "principalName", principalName,
+                "principalRoleName", principalRole.getName()
+        );
     }
 
 }

@@ -16,38 +16,69 @@
 
 package org.projectnessie.tools.polaris.migration.api.result;
 
+import com.google.gson.Gson;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-public class ResultWriter implements AutoCloseable {
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+/**
+ * Thread-safe container for synchronized log writing logic.
+ */
+public class MigrationLog {
+
+    private final Queue<EntityMigrationLog> logs = new ConcurrentLinkedQueue<>();
 
     private final CSVPrinter printer;
 
     private final Object fileLock = new Object();
 
-    public ResultWriter(File file) throws IOException {
+    private final Gson gson;
+
+    public MigrationLog(File file) throws IOException {
         CSVFormat format = CSVFormat.DEFAULT
                 .builder()
-                .setHeader("entityName", "entityType", "status", "reason", "properties")
+                .setHeader("entityType", "description", "status", "reason", "properties")
                 .get();
         this.printer = new CSVPrinter(new FileWriter(file), format);
+        this.gson = new Gson();
     }
 
-    public void writeResult(EntityMigrationResult result) {
+    public MigrationReport generateReport() {
+        return new MigrationReport(logs);
+    }
+
+    public Queue<EntityMigrationLog> getLogs() {
+        return logs;
+    }
+
+    /**
+     * Append the migration log to the file and in-memory log store.
+     * @param log
+     */
+    public void append(EntityMigrationLog log) {
         synchronized (fileLock) {
+            logs.add(log);
+
             try {
-                printer.printRecord(result.entityName(), result.entityType(), result.status(), result.reason(), result.properties());
+                printer.printRecord(
+                        log.entityType(),
+                        log.entityDescription(),
+                        log.status(),
+                        log.reason(),
+                        gson.toJson(log.properties())
+                );
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         this.printer.close();
     }
 

@@ -26,16 +26,54 @@ import java.util.Map;
 
 public final class ManagementMigrationUtil {
 
+    private static final String URI = "uri";
+
+    private static final String CLIENT_ID = "client_id";
+
+    private static final String CLIENT_SECRET = "client_secret";
+
+    private static final String SCOPE = "scope";
+
+    private static final String OAUTH2_SERVER_URI = "oauth2-server-uri";
+
+    private static final String ACCESS_TOKEN = "access-token";
+
+    private static void assertPresent(String key, Map<String, String> props, String errorMessage) {
+        if (!props.containsKey(key)) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
+    private static void validatePolarisInstanceProperties(Map<String, String> props) {
+        assertPresent("uri", props, "Property uri is required but was not provided");
+
+        String oauthErrorMessage = String.format(
+                "Either the %s property must be provided, or all of %s, %s, %s, %s",
+                ACCESS_TOKEN, OAUTH2_SERVER_URI, CLIENT_ID, CLIENT_SECRET, SCOPE
+        );
+
+        if (props.containsKey(ACCESS_TOKEN)) {
+            return;
+        }
+
+        assertPresent(OAUTH2_SERVER_URI, props, oauthErrorMessage);
+        assertPresent(CLIENT_ID, props, oauthErrorMessage);
+        assertPresent(CLIENT_SECRET, props, oauthErrorMessage);
+        assertPresent(SCOPE, props, oauthErrorMessage);
+    }
+
     public static PolarisManagementDefaultApi buildPolarisManagementClient(
             Map<String, String> properties
     ) throws IOException {
-        final String managementUri = properties.get("uri");
-        final String clientId = properties.get("client-id");
-        final String clientSecret = properties.get("client-secret");
-        final String scope = properties.get("scope");
-        final String oauth2ServerUri = properties.get("oauth2-server-uri");
+        validatePolarisInstanceProperties(properties);
 
-        String bearerToken = properties.getOrDefault("bearer", null);
+        final String managementUri = properties.get(URI);
+        final String clientId = properties.get(CLIENT_ID);
+        final String clientSecret = properties.get(CLIENT_SECRET);
+        final String scope = properties.get(SCOPE);
+        final String oauth2ServerUri = properties.get(OAUTH2_SERVER_URI);
+
+        String bearerToken = properties.getOrDefault(ACCESS_TOKEN, null);
 
         ApiClient client = new ApiClient();
         client.updateBaseUri(managementUri);

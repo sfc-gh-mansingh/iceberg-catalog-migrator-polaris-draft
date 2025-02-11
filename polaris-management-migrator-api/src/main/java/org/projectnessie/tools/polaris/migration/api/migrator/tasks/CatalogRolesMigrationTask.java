@@ -21,11 +21,10 @@ import org.apache.polaris.core.admin.model.CreateCatalogRoleRequest;
 import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationContext;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationTask;
-import org.projectnessie.tools.polaris.migration.api.result.EntityMigrationResult;
-import org.projectnessie.tools.polaris.migration.api.result.ImmutableEntityMigrationResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CatalogRolesMigrationTask extends MigrationTask<CatalogRole> {
 
@@ -33,6 +32,8 @@ public class CatalogRolesMigrationTask extends MigrationTask<CatalogRole> {
 
     private final boolean migrateGrants;
 
+    // contains the catalog role entities for which grants and principal role assignments
+    // should be computed
     private final List<CatalogRole> candidatesForSubentityMigration;
 
     private final boolean migratePrincipalRoleAssignments;
@@ -52,11 +53,12 @@ public class CatalogRolesMigrationTask extends MigrationTask<CatalogRole> {
 
     @Override
     public List<Class<? extends MigrationTask<?>>> dependsOn() {
+        // must wait for catalogs to finish migrating before we migrate catalog roles
         return List.of(CatalogsMigrationTask.class);
     }
 
     @Override
-    protected List<CatalogRole> getEntities() {
+    protected List<CatalogRole> listEntities() {
         return context.source().listCatalogRoles(catalogName).getRoles();
     }
 
@@ -67,24 +69,31 @@ public class CatalogRolesMigrationTask extends MigrationTask<CatalogRole> {
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResultOnRetrievalFailure(Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .putProperties("catalogName", catalogName);
+    protected String getDescription(CatalogRole catalogRole) {
+        return String.format("Catalog role (%s) under catalog (%s)", catalogRole.getName(), catalogName);
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResult(CatalogRole catalogRole, Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .entityName(catalogRole.getName())
-                .putProperties("catalogName", catalogName)
-                .putProperties("entityVersion", catalogRole.getEntityVersion().toString());
+    protected Map<String, String> properties() {
+        return Map.of(
+                "catalogName", catalogName
+        );
     }
 
     @Override
-    public List<EntityMigrationResult> migrate() {
-        List<EntityMigrationResult> results = super.migrate();
+    protected Map<String, String> properties(CatalogRole catalogRole) {
+        return Map.of(
+                "catalogRoleName", catalogRole.getName(),
+                "catalogName", catalogName
+        );
+    }
+
+    @Override
+    public void migrate() {
+        super.migrate();
 
         if (migrateGrants) {
+            // enqueue grant migration tasks
             for (CatalogRole catalogRole : candidatesForSubentityMigration) {
                 GrantsMigrationTask grantMigrationTask = new GrantsMigrationTask(context, catalogName, catalogRole.getName());
                 context.taskQueue().add(grantMigrationTask);
@@ -92,14 +101,13 @@ public class CatalogRolesMigrationTask extends MigrationTask<CatalogRole> {
         }
 
         if (migratePrincipalRoleAssignments) {
+            // enqueue assignments to principal roles migration tasks
             for (CatalogRole catalogRole : candidatesForSubentityMigration) {
                 CatalogRolesAssignmentMigrationTask catalogRoleAssignmentMigrationTask = new CatalogRolesAssignmentMigrationTask(
                         context, catalogName, catalogRole.getName());
                 context.taskQueue().add(catalogRoleAssignmentMigrationTask);
             }
         }
-
-        return results;
     }
 
 }

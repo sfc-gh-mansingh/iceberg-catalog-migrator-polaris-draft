@@ -21,9 +21,9 @@ import org.apache.polaris.core.admin.model.GrantResource;
 import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationContext;
 import org.projectnessie.tools.polaris.migration.api.migrator.MigrationTask;
-import org.projectnessie.tools.polaris.migration.api.result.ImmutableEntityMigrationResult;
 
 import java.util.List;
+import java.util.Map;
 
 public class GrantsMigrationTask extends MigrationTask<GrantResource> {
 
@@ -43,7 +43,7 @@ public class GrantsMigrationTask extends MigrationTask<GrantResource> {
     }
 
     @Override
-    protected List<GrantResource> getEntities() {
+    protected List<GrantResource> listEntities() {
         return context.source().listGrantsForCatalogRole(catalogName, catalogRoleName).getGrants();
     }
 
@@ -53,18 +53,26 @@ public class GrantsMigrationTask extends MigrationTask<GrantResource> {
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResultOnRetrievalFailure(Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .putProperties("catalogName", catalogName)
-                .putProperties("catalogRoleName", catalogRoleName);
+    protected String getDescription(GrantResource grant) {
+        return String.format("Grant (%s) for catalog role (%s) under catalog (%s)",
+                grant.getType(), catalogRoleName, catalogName);
     }
 
     @Override
-    protected ImmutableEntityMigrationResult.Builder prepareResult(GrantResource grant, Exception e) {
-        return ImmutableEntityMigrationResult.builder()
-                .entityName(grant.getType().getValue())
-                .putProperties("catalogName", catalogName)
-                .putProperties("catalogRoleName", catalogRoleName);
+    protected Map<String, String> properties() {
+        return Map.of(
+                "catalogName", catalogName,
+                "catalogRoleName", catalogRoleName
+        );
+    }
+
+    @Override
+    protected Map<String, String> properties(GrantResource grant) {
+        return Map.of(
+                "type", grant.getType().getValue(),
+                "catalogName", catalogName,
+                "catalogRoleName", catalogRoleName
+        );
     }
 
 }
