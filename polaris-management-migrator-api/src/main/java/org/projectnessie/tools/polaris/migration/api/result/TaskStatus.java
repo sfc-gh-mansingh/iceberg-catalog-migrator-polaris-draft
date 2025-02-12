@@ -16,9 +16,28 @@
 
 package org.projectnessie.tools.polaris.migration.api.result;
 
+/**
+ * Status for the state of a migration.
+ */
 public enum TaskStatus {
+
+    /**
+     * Entity successfully copied to target.
+     */
     SUCCESS,
+
+    /**
+     * Failed to create entity on the target.
+     */
     COPY_FAILED,
+
+    /**
+     * Failed to list entities for this task from the source.
+     */
     LIST_FAILED,
+
+    /**
+     * Encountered a conflict trying to create the entity on the target.
+     */
     CONFLICT,
 }
