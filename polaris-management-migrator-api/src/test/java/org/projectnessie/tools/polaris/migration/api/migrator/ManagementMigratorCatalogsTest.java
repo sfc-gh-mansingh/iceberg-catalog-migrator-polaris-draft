@@ -61,7 +61,8 @@ public class ManagementMigratorCatalogsTest {
                         new StorageConfigInfo()
                                 .storageType(StorageConfigInfo.StorageTypeEnum.S3)
                                 .addAllowedLocationsItem("s3://test-catalog-bucket/location")
-                );
+                )
+                .entityVersion(1);
 
 
         Catalogs catalogs = new Catalogs()
@@ -72,7 +73,8 @@ public class ManagementMigratorCatalogsTest {
         doNothing().when(mockTarget).createCatalog(any());
 
         CatalogRole catalogRole = new CatalogRole()
-                .name("test-catalog-role");
+                .name("test-catalog-role")
+                .entityVersion(1);
 
         CatalogRoles catalogRoles = new CatalogRoles()
                 .roles(List.of(catalogRole));
@@ -133,7 +135,8 @@ public class ManagementMigratorCatalogsTest {
         PolarisManagementDefaultApi mockTarget = Mockito.mock(PolarisManagementDefaultApi.class);
 
         Principal principal = new Principal()
-                .name("test-principal");
+                .name("test-principal")
+                .entityVersion(1);
 
         Principals principals = new Principals().principals(List.of(principal));
 
@@ -146,7 +149,8 @@ public class ManagementMigratorCatalogsTest {
         ).when(mockTarget).createPrincipal(any());
 
         PrincipalRole principalRole = new PrincipalRole()
-                .name("test-principal-role");
+                .name("test-principal-role")
+                .entityVersion(1);
 
         // Return test principal roles when assigned principal roles listed for test principal
         PrincipalRoles principalRoles = new PrincipalRoles().roles(List.of(principalRole));

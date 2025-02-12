@@ -47,7 +47,8 @@
     <appender-ref ref="console"/>
   </logger>
 
-  <logger name="org.projectnessie.tools.polaris.migration.api" level="INFO" additivity="false">
+  <logger name="org.projectnessie.tools.polaris.migration.api" level="INFO"
+    additivity="false">
     <appender-ref ref="console"/>
     <appender-ref ref="management-file"/>
   </logger>

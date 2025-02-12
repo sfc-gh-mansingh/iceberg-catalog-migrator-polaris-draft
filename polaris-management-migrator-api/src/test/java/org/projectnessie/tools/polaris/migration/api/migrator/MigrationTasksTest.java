@@ -87,7 +87,8 @@ public class MigrationTasksTest {
 
         Principal principal = new Principal()
                 .name("test-principal")
-                .clientId("test-client-id");
+                .clientId("test-client-id")
+                .entityVersion(1);
 
         doReturn(List.of(principal)).when(task).listEntities();
         doThrow(new ApiException(409, "Conflict")).when(task).createEntity(any());
@@ -109,7 +110,8 @@ public class MigrationTasksTest {
 
         Principal principal = new Principal()
                 .name("test-principal")
-                .clientId("test-client-id");
+                .clientId("test-client-id")
+                .entityVersion(1);
 
         doReturn(List.of(principal)).when(task).listEntities();
         doThrow(new ApiException("Reason")).when(task).createEntity(any());
@@ -131,7 +133,8 @@ public class MigrationTasksTest {
 
         Principal principal = new Principal()
                 .name("test-principal")
-                .clientId("test-client-id");
+                .clientId("test-client-id")
+                .entityVersion(1);
 
         doReturn(List.of(principal)).when(task).listEntities();
         doNothing().when(task).createEntity(any());

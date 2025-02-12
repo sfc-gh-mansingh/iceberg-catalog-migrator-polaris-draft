@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("org.openapi.generator") version "7.6.0"
+    alias(libs.plugins.openapi.generator.gradle.plugin)
 }
 
 group = "org.projectnessie.iceberg-catalog-migrator"
@@ -11,17 +11,17 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter.params)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.engine)
+    testImplementation(libs.mockito)
 
-    implementation("org.openapitools:openapi-generator:5.2.0")
-    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.google.code.gson:gson:2.12.0")
-    implementation("org.apache.commons:commons-csv:1.13.0")
-    testImplementation("org.mockito:mockito-core:5.15.2")
-
-
+    implementation(libs.openapi.generator)
+    implementation(libs.jakarta.annotation)
+    implementation(libs.okhttp)
+    implementation(libs.gson)
+    implementation(libs.apache.commons.csv)
 
     compileOnly(libs.immutables.value.annotations)
     annotationProcessor(libs.immutables.value.processor)
