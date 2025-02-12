@@ -1,6 +1,13 @@
 plugins {
+    id("java")
     `java-library`
     alias(libs.plugins.openapi.generator.gradle.plugin)
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21)) // Set the compilation JDK to 21
+    }
 }
 
 group = "org.projectnessie.iceberg-catalog-migrator"
