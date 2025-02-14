@@ -41,7 +41,7 @@ public class CatalogMigrationCLI {
                     String logFileName = "catalog_migration.log";
 
                     if (cmd.getCommand() instanceof CopyPolarisCommand) {
-                      logFileName = "management_copy.log";
+                      logFileName = "polaris_copy.log";
                     }
 
                     consoleLog.error(

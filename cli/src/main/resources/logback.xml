@@ -36,7 +36,7 @@
   </appender>
 
   <appender name="management-file" class="ch.qos.logback.core.FileAppender">
-    <file>${catalog.migration.log.dir}/management_copy.log</file>
+    <file>${catalog.migration.log.dir}/polaris_copy.log</file>
     <append>true</append>
     <encoder>
       <pattern>%date{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
