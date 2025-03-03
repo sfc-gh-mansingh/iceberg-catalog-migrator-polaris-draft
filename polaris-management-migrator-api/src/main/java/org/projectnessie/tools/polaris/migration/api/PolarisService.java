@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.projectnessie.tools.polaris.migration.api.idemp;
+package org.projectnessie.tools.polaris.migration.api;
 
 import com.snowflake.polaris.management.client.PolarisManagementDefaultApi;
 import org.apache.polaris.core.admin.model.AddGrantRequest;

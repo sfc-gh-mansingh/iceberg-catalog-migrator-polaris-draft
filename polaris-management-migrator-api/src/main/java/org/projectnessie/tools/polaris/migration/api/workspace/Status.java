@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-package org.projectnessie.tools.polaris.migration.api.idemp.workspace;
+package org.projectnessie.tools.polaris.migration.api.workspace;
 
-public record WorkspaceRecord(
-        EntityPath path,
-        Status status,
-        String reason,
-        String signature
-) {
+public enum Status {
 
-    public WorkspaceRecord(EntityPath path, Status status, Throwable throwable) {
-        this(path, status, throwable.getMessage(), "");
-    }
+    LIST_FROM_SOURCE_FAILED,
 
-    public WorkspaceRecord(EntityPath path, Status status, String signature) {
-        this(path, status, "", signature);
-    }
+    LIST_FROM_TARGET_FAILED,
 
-    public WorkspaceRecord(EntityPath path, Status status) {
-        this(path, status, "", "");
-    }
+    SKIPPED,
+
+    NOT_MODIFIED,
+
+    CREATED,
+
+    CREATE_FAILED,
+
+    OVERWRITTEN,
+
+    OVERWRITE_FAILED,
+
+    REMOVED,
+
+    REMOVE_FAILED,
 
 }

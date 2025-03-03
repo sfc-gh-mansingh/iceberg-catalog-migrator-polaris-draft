@@ -14,30 +14,25 @@
  * limitations under the License.
  */
 
-package org.projectnessie.tools.polaris.migration.api.result;
+package org.projectnessie.tools.polaris.migration.api.workspace;
 
-import org.immutables.value.Value;
-import org.projectnessie.tools.polaris.migration.api.ManagementEntityType;
+public record WorkspaceRecord(
+        EntityPath path,
+        Status status,
+        String reason,
+        String signature
+) {
 
-import java.util.Map;
-
-/**
- * Value class containing the details of an individual migration event.
- */
-@Value.Immutable
-public interface EntityMigrationLog {
-
-    String entityDescription();
-
-    TaskStatus status();
-
-    ManagementEntityType entityType();
-
-    @Value.Default
-    default String reason() {
-        return "";
+    public WorkspaceRecord(EntityPath path, Status status, Throwable throwable) {
+        this(path, status, throwable.getMessage(), "");
     }
 
-    Map<String, String> properties();
+    public WorkspaceRecord(EntityPath path, Status status, String signature) {
+        this(path, status, "", signature);
+    }
+
+    public WorkspaceRecord(EntityPath path, Status status) {
+        this(path, status, "", "");
+    }
 
 }

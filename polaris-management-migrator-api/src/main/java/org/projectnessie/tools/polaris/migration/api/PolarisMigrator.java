@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.projectnessie.tools.polaris.migration.api.idemp;
+package org.projectnessie.tools.polaris.migration.api;
 
 import org.apache.polaris.core.admin.model.Catalog;
 import org.apache.polaris.core.admin.model.CatalogRole;
 import org.apache.polaris.core.admin.model.GrantResource;
-import org.projectnessie.tools.polaris.migration.api.idemp.workspace.EntityPath;
-import org.projectnessie.tools.polaris.migration.api.idemp.workspace.SignatureService;
-import org.projectnessie.tools.polaris.migration.api.idemp.workspace.Status;
-import org.projectnessie.tools.polaris.migration.api.idemp.workspace.Workspace;
-import org.projectnessie.tools.polaris.migration.api.idemp.workspace.WorkspaceRecord;
+import org.projectnessie.tools.polaris.migration.api.workspace.EntityPath;
+import org.projectnessie.tools.polaris.migration.api.workspace.SignatureService;
+import org.projectnessie.tools.polaris.migration.api.workspace.Status;
+import org.projectnessie.tools.polaris.migration.api.workspace.Workspace;
+import org.projectnessie.tools.polaris.migration.api.workspace.WorkspaceRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

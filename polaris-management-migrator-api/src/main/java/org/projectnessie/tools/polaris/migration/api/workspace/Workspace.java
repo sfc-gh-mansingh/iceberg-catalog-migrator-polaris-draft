@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.projectnessie.tools.polaris.migration.api.idemp.workspace;
+package org.projectnessie.tools.polaris.migration.api.workspace;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
