@@ -22,21 +22,22 @@ import com.snowflake.polaris.management.client.PolarisManagementDefaultApi;
 import org.apache.http.HttpHeaders;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 
 public final class ManagementMigrationUtil {
 
-    protected static final String URI = "uri";
+    public static final String BASE_URL = "base-url";
 
-    protected static final String CLIENT_ID = "client_id";
+    public static final String CLIENT_ID = "client_id";
 
-    protected static final String CLIENT_SECRET = "client_secret";
+    public static final String CLIENT_SECRET = "client_secret";
 
-    protected static final String SCOPE = "scope";
+    public static final String SCOPE = "scope";
 
-    protected static final String OAUTH2_SERVER_URI = "oauth2-server-uri";
+    public static final String OAUTH2_SERVER_URI = "oauth2-server-uri";
 
-    protected static final String ACCESS_TOKEN = "access-token";
+    public static final String ACCESS_TOKEN = "access-token";
 
     protected static void assertPresent(String key, Map<String, String> props, String errorMessage) {
         if (!props.containsKey(key)) {
@@ -45,7 +46,7 @@ public final class ManagementMigrationUtil {
     }
 
     protected static void validatePolarisInstanceProperties(Map<String, String> props) {
-        assertPresent("uri", props, "Property uri is required but was not provided");
+        assertPresent(BASE_URL, props, "Property base-url is required but was not provided");
 
         String oauthErrorMessage = String.format(
                 "Either the %s property must be provided, or all of %s, %s, %s, %s",
@@ -67,7 +68,7 @@ public final class ManagementMigrationUtil {
     ) throws IOException {
         validatePolarisInstanceProperties(properties);
 
-        final String managementUri = properties.get(URI);
+        final String managementUri = properties.get(BASE_URL) + "/api/management/v1";
         final String clientId = properties.get(CLIENT_ID);
         final String clientSecret = properties.get(CLIENT_SECRET);
         final String scope = properties.get(SCOPE);

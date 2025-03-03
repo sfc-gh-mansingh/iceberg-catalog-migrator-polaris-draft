@@ -24,11 +24,22 @@ dependencies {
     testImplementation(libs.junit.jupiter.engine)
     testImplementation(libs.mockito)
 
+
+    implementation(project(":iceberg-catalog-migrator-api"))
     implementation(libs.openapi.generator)
     implementation(libs.jakarta.annotation)
     implementation(libs.okhttp)
     implementation(libs.gson)
     implementation(libs.apache.commons.csv)
+    implementation(libs.iceberg.spark.runtime)
+
+    implementation(libs.hadoop.common) {
+        exclude("org.apache.avro", "avro")
+        exclude("org.slf4j", "slf4j-log4j12")
+        exclude("javax.servlet", "servlet-api")
+        exclude("com.google.code.gson", "gson")
+        exclude("commons-beanutils")
+    }
 
     compileOnly(libs.immutables.value.annotations)
     annotationProcessor(libs.immutables.value.processor)

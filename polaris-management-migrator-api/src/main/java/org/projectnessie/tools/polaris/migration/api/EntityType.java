@@ -16,12 +16,17 @@
 
 package org.projectnessie.tools.polaris.migration.api;
 
-public enum ManagementEntityType {
+public enum EntityType {
     CATALOG,
     PRINCIPAL,
     PRINCIPAL_ROLE,
     PRINCIPAL_ROLE_ASSIGNMENT,
     CATALOG_ROLE_ASSIGNMENT,
     CATALOG_ROLE,
-    GRANT
+    GRANT,
+    CATALOG_GRANT,
+    NAMESPACE_GRANT,
+    VIEW_GRANT,
+    TABLE_GRANT,
+    TABLE
 }
