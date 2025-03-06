@@ -52,7 +52,7 @@ public class ITNessieToHiveCatalogMigrator extends AbstractTestCatalogMigrator {
     CatalogMigrator catalogMigrator = catalogMigratorWithDefaultArgs(false);
     // should also include table from empty namespace
     Set<TableIdentifier> matchingTableIdentifiers =
-        catalogMigrator.getMatchingTableIdentifiers(null);
+        catalogMigrator.getMatchingTableIdentifiersFromSource(null);
     Assertions.assertThat(matchingTableIdentifiers).contains(TBL);
 
     matchingTableIdentifiers.forEach(catalogMigrator::registerTable);

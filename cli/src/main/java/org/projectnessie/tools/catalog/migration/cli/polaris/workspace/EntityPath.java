@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.projectnessie.tools.polaris.migration.api.workspace;
+package org.projectnessie.tools.catalog.migration.cli.polaris.workspace;
 
+import org.apache.iceberg.catalog.TableIdentifier;
 import org.apache.polaris.core.admin.model.CatalogGrant;
 import org.apache.polaris.core.admin.model.GrantResource;
 import org.apache.polaris.core.admin.model.NamespaceGrant;
@@ -81,6 +82,17 @@ public record EntityPath(String... parts) {
             parts.add(v.getPrivilege().getValue());
         }
 
+        return new EntityPath(parts.toArray(new String[0]));
+    }
+
+    public static EntityPath tables(String catalogName) {
+        return new EntityPath(EntityType.CATALOG.name(), catalogName, EntityType.TABLE.name());
+    }
+
+    public static EntityPath table(String catalogName, TableIdentifier tableIdentifier) {
+        List<String> parts = new ArrayList<>(List.of(EntityType.CATALOG.name(), catalogName, EntityType.NAMESPACE.name()));
+        parts.addAll(Arrays.stream(tableIdentifier.namespace().levels()).toList());
+        parts.addAll(List.of(EntityType.TABLE.name(), tableIdentifier.name()));
         return new EntityPath(parts.toArray(new String[0]));
     }
 

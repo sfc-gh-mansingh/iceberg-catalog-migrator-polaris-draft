@@ -83,6 +83,14 @@ public abstract class CatalogMigrator {
       ImmutableCatalogMigrationResult.builder();
   private final Set<Namespace> processedNamespaces = new HashSet<>();
 
+  public Set<TableIdentifier> getMatchingTableIdentifiersFromSource(String identifierRegex) {
+    return getMatchingTableIdentifiers(sourceCatalog(), identifierRegex);
+  }
+
+  public Set<TableIdentifier> getMatchingTableIdentifiersFromTarget(String identifierRegex) {
+    return getMatchingTableIdentifiers(targetCatalog(), identifierRegex);
+  }
+
   /**
    * Get the table identifiers which matches the regular expression pattern input from all the
    * namespaces.
@@ -91,18 +99,18 @@ public abstract class CatalogMigrator {
    *     from all the namespaces.
    * @return Set of table identifiers.
    */
-  public Set<TableIdentifier> getMatchingTableIdentifiers(String identifierRegex) {
-    LOG.info("Collecting all the namespaces from source catalog...");
+  public Set<TableIdentifier> getMatchingTableIdentifiers(Catalog catalog, String identifierRegex) {
+    LOG.info("Collecting all the namespaces from catalog...");
     Set<Namespace> namespaces = new LinkedHashSet<>();
-    getAllNamespacesFromSourceCatalog(Namespace.empty(), namespaces);
+    getAllNamespacesFromCatalog(catalog, Namespace.empty(), namespaces);
 
     Predicate<TableIdentifier> matchedIdentifiersPredicate;
     if (identifierRegex == null) {
-      LOG.info("Collecting all the tables from all the namespaces of source catalog...");
+      LOG.info("Collecting all the tables from all the namespaces of catalog...");
       matchedIdentifiersPredicate = tableIdentifier -> true;
     } else {
       LOG.info(
-          "Collecting all the tables from all the namespaces of source catalog"
+          "Collecting all the tables from all the namespaces of catalog"
               + " which matches the regex pattern:{}",
           identifierRegex);
       Pattern pattern = Pattern.compile(identifierRegex);
@@ -113,7 +121,7 @@ public abstract class CatalogMigrator {
         .flatMap(
             namespace -> {
               try {
-                return sourceCatalog().listTables(namespace).stream()
+                return catalog.listTables(namespace).stream()
                     .filter(matchedIdentifiersPredicate);
               } catch (IllegalArgumentException | NoSuchNamespaceException exception) {
                 if (namespace.isEmpty()) {
@@ -195,14 +203,23 @@ public abstract class CatalogMigrator {
     }
   }
 
-  protected void getAllNamespacesFromSourceCatalog(Namespace namespace, Set<Namespace> visited) {
+  protected void getAllNamespacesFromCatalog(Catalog catalog, Namespace namespace, Set<Namespace> visited) {
     if (!visited.add(namespace)) {
       return;
     }
-    List<Namespace> children = ((SupportsNamespaces) sourceCatalog()).listNamespaces(namespace);
+    List<Namespace> children = ((SupportsNamespaces) catalog).listNamespaces(namespace);
     for (Namespace child : children) {
-      getAllNamespacesFromSourceCatalog(child, visited);
+      getAllNamespacesFromCatalog(catalog, child, visited);
     }
+  }
+
+  public CatalogMigrator dropTableFromTargetCatalog(TableIdentifier identifier) {
+    Preconditions.checkArgument(identifier != null, "Identifier is null");
+    targetCatalog().dropTable(identifier, false);
+
+    LOG.info("Successfully dropped table {} from target", identifier);
+
+    return this;
   }
 
   private boolean registerTableToTargetCatalog(TableIdentifier tableIdentifier) {

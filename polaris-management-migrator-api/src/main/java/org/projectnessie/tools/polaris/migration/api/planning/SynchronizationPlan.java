@@ -14,25 +14,9 @@
  * limitations under the License.
  */
 
-package org.projectnessie.tools.polaris.migration.api.workspace;
+package org.projectnessie.tools.polaris.migration.api.planning;
 
-public record WorkspaceRecord(
-        EntityPath path,
-        Status status,
-        String reason,
-        String signature
-) {
+import java.util.List;
 
-    public WorkspaceRecord(EntityPath path, Status status, Throwable throwable) {
-        this(path, status, throwable.getMessage(), "");
-    }
-
-    public WorkspaceRecord(EntityPath path, Status status, String signature) {
-        this(path, status, "", signature);
-    }
-
-    public WorkspaceRecord(EntityPath path, Status status) {
-        this(path, status, "", "");
-    }
-
+public record SynchronizationPlan<T>(List<T> entitiesToCreate, List<T> entitiesToOverwrite, List<T> entitiesToRemove) {
 }

@@ -52,7 +52,7 @@ public class ITHadoopToNessieCatalogMigrator extends AbstractTestCatalogMigrator
 
     CatalogMigrator catalogMigrator = catalogMigratorWithDefaultArgs(false);
     Set<TableIdentifier> matchingTableIdentifiers =
-        catalogMigrator.getMatchingTableIdentifiers(null);
+        catalogMigrator.getMatchingTableIdentifiersFromSource(null);
     // HadoopCatalog supports implicit namespaces.
     // Hence, No concept of empty namespace too. So, cannot list the tables from default
     // namespaces.
@@ -112,7 +112,7 @@ public class ITHadoopToNessieCatalogMigrator extends AbstractTestCatalogMigrator
         namespace -> ((SupportsNamespaces) sourceCatalog).createNamespace(namespace));
     Set<Namespace> listedNamespaces = new HashSet<>();
     // collect all the namespaces from all levels
-    catalogMigrator.getAllNamespacesFromSourceCatalog(Namespace.empty(), listedNamespaces);
+    catalogMigrator.getAllNamespacesFromCatalog(Namespace.empty(), listedNamespaces);
     Assertions.assertThat(listedNamespaces).containsAll(namespaceList);
 
     Collections.reverse(namespaceList);
@@ -138,7 +138,7 @@ public class ITHadoopToNessieCatalogMigrator extends AbstractTestCatalogMigrator
     namespaceList.forEach(namespace -> ((SupportsNamespaces) nessie).createNamespace(namespace));
     Set<Namespace> listedNamespaces = new HashSet<>();
     // collect all the namespaces from all levels
-    catalogMigrator.getAllNamespacesFromSourceCatalog(Namespace.empty(), listedNamespaces);
+    catalogMigrator.getAllNamespacesFromCatalog(Namespace.empty(), listedNamespaces);
     Assertions.assertThat(listedNamespaces).containsAll(namespaceList);
 
     Collections.reverse(namespaceList);

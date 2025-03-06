@@ -133,7 +133,7 @@ public abstract class BaseRegisterCommand implements Callable<Integer> {
 
       if (identifiers.isEmpty()) {
         consoleLog.info("Identifying tables for {} ...", operation());
-        identifiers = catalogMigrator.getMatchingTableIdentifiers(identifierRegEx);
+        identifiers = catalogMigrator.getMatchingTableIdentifiersFromSource(identifierRegEx);
         if (identifiers.isEmpty()) {
           consoleLog.warn(
               "No tables were identified for {}. Please check `catalog_migration.log` file for more info.",

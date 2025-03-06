@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.projectnessie.tools.polaris.migration.api.workspace;
+package org.projectnessie.tools.catalog.migration.cli.polaris.workspace;
 
 public enum Status {
 

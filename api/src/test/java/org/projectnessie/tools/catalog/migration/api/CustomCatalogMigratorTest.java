@@ -61,7 +61,7 @@ public class CustomCatalogMigratorTest extends AbstractTest {
             .deleteEntriesFromSourceCatalog(false)
             .build();
     // should fail to register as catalog doesn't support register table operations.
-    catalogMigrator.getMatchingTableIdentifiers(null).forEach(catalogMigrator::registerTable);
+    catalogMigrator.getMatchingTableIdentifiersFromSource(null).forEach(catalogMigrator::registerTable);
     CatalogMigrationResult result = catalogMigrator.result();
     Assertions.assertThat(result.registeredTableIdentifiers()).isEmpty();
     Assertions.assertThat(result.failedToRegisterTableIdentifiers())

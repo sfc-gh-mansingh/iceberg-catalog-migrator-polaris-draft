@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.projectnessie.tools.polaris.migration.api;
+package org.projectnessie.tools.catalog.migration.cli.polaris.workspace;
 
-public enum EntityType {
-    CATALOG,
-    PRINCIPAL,
-    PRINCIPAL_ROLE,
-    PRINCIPAL_ROLE_ASSIGNMENT,
-    CATALOG_ROLE_ASSIGNMENT,
-    CATALOG_ROLE,
+public record WorkspaceRecord(
+        EntityPath path,
+        Status status,
+        String reason,
+        String signature
+) {
 
-    GRANT,
-    CATALOG_GRANT,
-    NAMESPACE_GRANT,
-    VIEW_GRANT,
-    TABLE_GRANT,
+    public WorkspaceRecord(EntityPath path, Status status, Throwable throwable) {
+        this(path, status, throwable.getMessage(), "");
+    }
 
-    NAMESPACE,
-    TABLE
+    public WorkspaceRecord(EntityPath path, Status status, String signature) {
+        this(path, status, "", signature);
+    }
+
+    public WorkspaceRecord(EntityPath path, Status status) {
+        this(path, status, "", "");
+    }
+
 }

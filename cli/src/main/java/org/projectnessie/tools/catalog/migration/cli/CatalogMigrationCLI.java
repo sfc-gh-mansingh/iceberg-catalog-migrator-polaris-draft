@@ -15,6 +15,7 @@
  */
 package org.projectnessie.tools.catalog.migration.cli;
 
+import org.projectnessie.tools.catalog.migration.cli.polaris.SyncPolarisCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -23,7 +24,7 @@ import picocli.CommandLine;
     name = "iceberg-catalog-migrator",
     mixinStandardHelpOptions = true,
     versionProvider = CLIVersionProvider.class,
-    subcommands = {MigrateCommand.class, RegisterCommand.class, CopyPolarisCommand.class})
+    subcommands = {MigrateCommand.class, RegisterCommand.class, SyncPolarisCommand.class})
 public class CatalogMigrationCLI {
 
   public CatalogMigrationCLI() {}
@@ -40,7 +41,7 @@ public class CatalogMigrationCLI {
                   } else {
                     String logFileName = "catalog_migration.log";
 
-                    if (cmd.getCommand() instanceof CopyPolarisCommand) {
+                    if (cmd.getCommand() instanceof SyncPolarisCommand) {
                       logFileName = "polaris_copy.log";
                     }
 

@@ -158,7 +158,7 @@ public abstract class AbstractTestCatalogMigrator extends AbstractTest {
     // using --identifiers-regex option which matches all the tables starts with "foo."
     CatalogMigrator catalogMigrator = catalogMigratorWithDefaultArgs(deleteSourceTables);
     catalogMigrator
-        .getMatchingTableIdentifiers("^foo\\..*")
+        .getMatchingTableIdentifiersFromSource("^foo\\..*")
         .forEach(catalogMigrator::registerTable);
     result = catalogMigrator.result();
     Assertions.assertThat(result.registeredTableIdentifiers())
@@ -256,16 +256,16 @@ public abstract class AbstractTestCatalogMigrator extends AbstractTest {
 
     // should list all the tables from all the namespace when regex is null.
     Set<TableIdentifier> matchingTableIdentifiers =
-        catalogMigrator.getMatchingTableIdentifiers(null);
+        catalogMigrator.getMatchingTableIdentifiersFromSource(null);
     Assertions.assertThat(matchingTableIdentifiers)
         .containsExactlyInAnyOrder(FOO_TBL1, FOO_TBL2, BAR_TBL3, BAR_TBL4);
 
     // list the tables whose identifier starts with "foo."
-    matchingTableIdentifiers = catalogMigrator.getMatchingTableIdentifiers("^foo\\..*");
+    matchingTableIdentifiers = catalogMigrator.getMatchingTableIdentifiersFromSource("^foo\\..*");
     Assertions.assertThat(matchingTableIdentifiers).containsExactlyInAnyOrder(FOO_TBL1, FOO_TBL2);
 
     // test filter that doesn't match any table.
-    matchingTableIdentifiers = catalogMigrator.getMatchingTableIdentifiers("^dev\\..*");
+    matchingTableIdentifiers = catalogMigrator.getMatchingTableIdentifiersFromSource("^dev\\..*");
     Assertions.assertThat(matchingTableIdentifiers).isEmpty();
   }
 
@@ -336,7 +336,7 @@ public abstract class AbstractTestCatalogMigrator extends AbstractTest {
 
   private CatalogMigrationResult registerAllTables(boolean deleteSourceTables) {
     CatalogMigrator catalogMigrator = catalogMigratorWithDefaultArgs(deleteSourceTables);
-    catalogMigrator.getMatchingTableIdentifiers(null).forEach(catalogMigrator::registerTable);
+    catalogMigrator.getMatchingTableIdentifiersFromSource(null).forEach(catalogMigrator::registerTable);
     return catalogMigrator.result();
   }
 }
